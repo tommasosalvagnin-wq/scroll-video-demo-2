@@ -1,0 +1,615 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Scroll Video Demo 2 — Hero a scroll-scrubbing</title>
+<meta name="description" content="Demo di hero con video controllato dallo scroll, fluido su desktop e mobile.">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:ital,wght@0,400;0,500;0,600;0,700;0,800;1,700;1,800&display=swap" rel="stylesheet">
+
+<style>
+  :root{
+    --bg:#121212;
+    --surface:#1c1c1c;
+    --ink:#f2f0ec;
+    --gray:#a8a49d;
+    --accent:#7fb0a3;
+    --accent-dark:#5c8b7f;
+    --border:rgba(255,255,255,0.12);
+    --shadow: 0 10px 30px rgba(0,0,0,0.5);
+  }
+
+  *{box-sizing:border-box; margin:0; padding:0;}
+
+  html{
+    scroll-behavior:smooth;
+    overflow-x:hidden;
+  }
+
+  body{
+    font-family:'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    background:var(--bg);
+    color:var(--ink);
+    line-height:1.6;
+  }
+
+  a{color:inherit; text-decoration:none;}
+  img{max-width:100%; display:block;}
+
+  .container{
+    max-width:1100px;
+    margin:0 auto;
+    padding:0 24px;
+  }
+
+  /* ===================== HERO / SCROLL-SCRUBBING VIDEO ===================== */
+  .hero-wrap{
+    position:relative;
+    height:400vh;
+    background:#000;
+  }
+
+  .hero-sticky{
+    position:-webkit-sticky;
+    position:sticky;
+    top:0;
+    height:100vh;
+    height:100svh;
+    width:100%;
+    overflow:hidden;
+    display:flex;
+    align-items:flex-end;
+  }
+
+  #tour-canvas{
+    position:absolute;
+    inset:0;
+    width:100%;
+    height:100%;
+    display:block;
+    background:#000;
+  }
+
+  .hero-gradient{
+    position:absolute;
+    inset:0;
+    background:linear-gradient(to top, rgba(0,0,0,0.6) 0%, rgba(0,0,0,0.15) 45%, rgba(0,0,0,0) 70%);
+    pointer-events:none;
+  }
+
+  .hero-loader{
+    position:absolute;
+    inset:0;
+    z-index:8;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    background:#000;
+    transition:opacity 0.5s ease, visibility 0.5s ease;
+  }
+
+  .hero-loader.is-hidden{
+    opacity:0;
+    visibility:hidden;
+    pointer-events:none;
+  }
+
+  .loader{
+    --path:rgba(255,255,255,0.25);
+    --dot:var(--accent);
+    --duration:3s;
+    width:56px;
+    height:56px;
+    position:relative;
+  }
+
+  .loader:before{
+    content:"";
+    width:8px;
+    height:8px;
+    border-radius:50%;
+    position:absolute;
+    display:block;
+    background:var(--dot);
+    top:37px;
+    left:19px;
+    transform:translate(-18px,-18px);
+    animation:dotRect var(--duration) cubic-bezier(0.785,0.135,0.15,0.86) infinite;
+  }
+
+  .loader svg{
+    display:block;
+    width:100%;
+    height:100%;
+  }
+
+  .loader svg circle{
+    fill:none;
+    stroke:var(--path);
+    stroke-width:10px;
+    stroke-linejoin:round;
+    stroke-linecap:round;
+    stroke-dasharray:150 50 150 50;
+    stroke-dashoffset:75;
+    animation:pathCircle var(--duration) cubic-bezier(0.785,0.135,0.15,0.86) infinite;
+  }
+
+  @keyframes pathCircle{
+    25%{ stroke-dashoffset:125; }
+    50%{ stroke-dashoffset:175; }
+    75%{ stroke-dashoffset:225; }
+    100%{ stroke-dashoffset:275; }
+  }
+
+  @keyframes dotRect{
+    25%{ transform:translate(0,0); }
+    50%{ transform:translate(18px,-18px); }
+    75%{ transform:translate(0,-36px); }
+    100%{ transform:translate(-18px,-18px); }
+  }
+
+  .hero-nav{
+    position:absolute;
+    top:0; left:0; right:0;
+    z-index:10;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    padding:24px clamp(20px, 5vw, 48px);
+  }
+
+  .hero-logo{
+    color:#fff;
+    font-weight:700;
+    font-size:1.1rem;
+    letter-spacing:0.02em;
+  }
+
+  .btn-fancy{
+    position:relative;
+    padding:0.8rem 0.6rem 0.8rem 1.5rem;
+    font-family:inherit;
+    font-size:0.95rem;
+    font-weight:700;
+    color:#ffffff;
+    background:linear-gradient(to bottom, #171717, #242424);
+    border-radius:9999px;
+    cursor:pointer;
+    box-shadow:0 2px 4px rgba(0,0,0,1), 0 10px 20px rgba(0,0,0,0.4);
+    transition:all 0.2s ease;
+    display:inline-flex;
+    align-items:center;
+    gap:12px;
+    border:1px solid #292929;
+  }
+
+  .btn-fancy::before{
+    content:"";
+    position:absolute;
+    top:-2px; right:-1px; bottom:-1px; left:-1px;
+    background:linear-gradient(to bottom, #292929, #000000);
+    z-index:-1;
+    border-radius:9999px;
+    transition:all 0.2s ease;
+    opacity:1;
+  }
+
+  .btn-fancy:active{
+    transform:translateY(2px);
+    box-shadow:0 1px 2px rgba(0,0,0,1), 0 5px 10px rgba(0,0,0,0.4);
+  }
+
+  .btn-fancy-icon{
+    position:relative;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    background:linear-gradient(to bottom, #171717, #242424);
+    width:34px;
+    height:34px;
+    border-radius:50%;
+    box-shadow:0 0 1px rgba(0,0,0,1);
+    border:1px solid #252525;
+    color:var(--accent);
+    font-size:1rem;
+    transition:all 0.3s ease;
+    flex-shrink:0;
+  }
+
+  .btn-fancy-icon::before{
+    content:"";
+    position:absolute;
+    top:-2px; right:-1px; bottom:-1px; left:-1px;
+    background:linear-gradient(to bottom, #292929, #000000);
+    z-index:-1;
+    border-radius:9999px;
+    transition:all 0.2s ease;
+    opacity:1;
+  }
+
+  .btn-fancy:hover .btn-fancy-icon{
+    transform:rotate(-35deg);
+    color:#fff;
+  }
+
+  .rating-badge{
+    position:absolute;
+    top:24px;
+    right:clamp(20px, 5vw, 48px);
+    z-index:10;
+    background:rgba(255,255,255,0.92);
+    color:#171717;
+    font-weight:600;
+    font-size:0.9rem;
+    padding:10px 18px;
+    border-radius:999px;
+    box-shadow:var(--shadow);
+    margin-top:64px;
+  }
+
+  .hero-line{
+    position:absolute;
+    left:clamp(20px, 5vw, 60px);
+    right:clamp(20px, 5vw, 60px);
+    bottom:clamp(60px, 10vh, 110px);
+    opacity:0;
+    color:#fff;
+  }
+
+  .hero-line.big{
+    font-size:clamp(2.2rem, 6vw, 4.5rem);
+    font-weight:800;
+    line-height:1.1;
+    letter-spacing:-0.01em;
+  }
+
+  .hero-line.mid{
+    font-size:clamp(1.4rem, 3.5vw, 2.4rem);
+    font-weight:600;
+  }
+
+  .hero-scroll-hint{
+    position:absolute;
+    bottom:24px;
+    left:50%;
+    transform:translateX(-50%);
+    z-index:6;
+    color:#fff;
+    font-size:0.8rem;
+    opacity:0.75;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:6px;
+  }
+
+  .hero-scroll-hint .chevron{
+    width:14px; height:14px;
+    border-right:2px solid #fff;
+    border-bottom:2px solid #fff;
+    transform:rotate(45deg);
+    animation:bounce 1.8s infinite;
+  }
+
+  @keyframes bounce{
+    0%,100%{transform:rotate(45deg) translate(0,0);}
+    50%{transform:rotate(45deg) translate(4px,4px);}
+  }
+
+  /* ===================== SECTIONS ===================== */
+  section{
+    padding:96px 0;
+  }
+
+  .reveal{
+    opacity:0;
+    transform:translateY(28px);
+    transition:opacity 0.8s ease, transform 0.8s ease;
+  }
+  .reveal.is-visible{
+    opacity:1;
+    transform:translateY(0);
+  }
+
+  h2{
+    font-size:clamp(1.7rem, 3.5vw, 2.4rem);
+    font-weight:700;
+    letter-spacing:-0.01em;
+    margin-bottom:20px;
+  }
+
+  .eyebrow{
+    text-transform:uppercase;
+    letter-spacing:0.12em;
+    font-size:0.78rem;
+    font-weight:700;
+    color:var(--accent);
+    margin-bottom:14px;
+    display:block;
+  }
+
+  .intro p{
+    font-size:1.1rem;
+    color:var(--gray);
+    max-width:700px;
+  }
+
+  .features-grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fit, minmax(240px, 1fr));
+    gap:28px;
+    margin-top:40px;
+  }
+
+  .feature-card{
+    padding:28px;
+    border:1px solid var(--border);
+    border-radius:14px;
+    background:var(--surface);
+  }
+
+  .feature-card h3{
+    font-size:1.1rem;
+    margin-bottom:10px;
+  }
+
+  .feature-card p{
+    color:var(--gray);
+    font-size:0.95rem;
+  }
+
+  .cta-final{
+    text-align:center;
+    padding:120px 24px;
+  }
+
+  footer{
+    background:var(--surface);
+    border-top:1px solid var(--border);
+    color:var(--gray);
+    padding:40px 24px;
+    text-align:center;
+    font-size:0.85rem;
+  }
+</style>
+</head>
+<body>
+
+<!-- ===================== HERO / SCROLL-SCRUBBING VIDEO ===================== -->
+<div class="hero-wrap" id="hero-wrap">
+  <div class="hero-sticky">
+    <canvas id="tour-canvas"></canvas>
+    <div class="hero-gradient"></div>
+
+    <div class="hero-loader" id="hero-loader">
+      <div class="loader">
+        <svg viewBox="0 0 80 80"><circle r="32" cy="40" cx="40"></circle></svg>
+      </div>
+    </div>
+
+    <div class="hero-nav">
+      <div class="hero-logo">Il Tuo Brand</div>
+      <a href="#cta" class="btn-fancy">Scopri di più<span class="btn-fancy-icon">→</span></a>
+    </div>
+
+    <div class="rating-badge">★ 4.9 · Anteprima</div>
+
+    <h1 class="hero-line big" id="hero-line-1">Un titolo che cattura l'attenzione</h1>
+    <h2 class="hero-line mid" id="hero-line-2">Sottotitolo di supporto al messaggio</h2>
+    <h2 class="hero-line mid" id="hero-line-3">Un dettaglio in più da comunicare</h2>
+    <h2 class="hero-line mid" id="hero-line-4">Un invito chiaro all'azione</h2>
+
+    <div class="hero-scroll-hint"><span>Scorri</span><span class="chevron"></span></div>
+  </div>
+</div>
+
+<!-- ===================== SEZIONE INTRO ===================== -->
+<section class="intro">
+  <div class="container reveal">
+    <span class="eyebrow">Chi siamo</span>
+    <h2>Un titolo di sezione da personalizzare</h2>
+    <p>Testo segnaposto: qui va la presentazione del prodotto, servizio o brand — sostituiscilo con il messaggio reale una volta definiti i contenuti.</p>
+  </div>
+</section>
+
+<!-- ===================== SEZIONE FEATURE ===================== -->
+<section class="features">
+  <div class="container reveal">
+    <span class="eyebrow">Punti di forza</span>
+    <h2>Cosa rende unica l'offerta</h2>
+
+    <div class="features-grid">
+      <div class="feature-card">
+        <h3>Punto di forza 1</h3>
+        <p>Testo segnaposto da sostituire con il contenuto reale.</p>
+      </div>
+      <div class="feature-card">
+        <h3>Punto di forza 2</h3>
+        <p>Testo segnaposto da sostituire con il contenuto reale.</p>
+      </div>
+      <div class="feature-card">
+        <h3>Punto di forza 3</h3>
+        <p>Testo segnaposto da sostituire con il contenuto reale.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== CTA FINALE + FOOTER ===================== -->
+<section class="cta-final" id="cta">
+  <div class="reveal">
+    <h2>Pronto per il passo successivo?</h2>
+    <a href="#" class="btn-fancy">Contattaci<span class="btn-fancy-icon">→</span></a>
+  </div>
+</section>
+
+<footer>
+  © 2026 Il Tuo Brand. Tutti i diritti riservati.
+</footer>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+<script>
+(function(){
+  gsap.registerPlugin(ScrollTrigger);
+
+  var heroWrap = document.getElementById('hero-wrap');
+  var canvas = document.getElementById('tour-canvas');
+  var ctx = canvas.getContext('2d');
+  ctx.imageSmoothingEnabled = true;
+  ctx.imageSmoothingQuality = 'high';
+
+  // Sequenza di immagini invece di un video: disegnare un frame gia'
+  // decodificato su canvas e' pressoche' istantaneo, quindi lo scrub
+  // risponde 1:1 allo scroll senza la latenza di seek di un <video>
+  // (il vero collo di bottiglia su mobile).
+  var isMobile = window.matchMedia('(max-width: 768px)').matches;
+  var frameSet = isMobile
+    ? { folder: 'frames/mobile', count: 45 }
+    : { folder: 'frames/desktop', count: 60 };
+
+  var images = new Array(frameSet.count);
+  var loadedCount = 0;
+  var currentFrameIndex = -1;
+  var dpr = Math.min(window.devicePixelRatio || 1, 2);
+
+  function pad3(n){
+    var s = String(n);
+    while (s.length < 3) s = '0' + s;
+    return s;
+  }
+
+  function findLoadedImage(index){
+    if (images[index] && images[index].complete && images[index].naturalWidth) return images[index];
+    for (var d = 1; d < frameSet.count; d++){
+      var before = index - d, after = index + d;
+      if (before >= 0 && images[before] && images[before].complete && images[before].naturalWidth) return images[before];
+      if (after < frameSet.count && images[after] && images[after].complete && images[after].naturalWidth) return images[after];
+    }
+    return null;
+  }
+
+  function resizeCanvas(){
+    var w = canvas.parentElement.clientWidth;
+    var h = canvas.parentElement.clientHeight;
+    canvas.width = Math.round(w * dpr);
+    canvas.height = Math.round(h * dpr);
+    drawFrame(Math.max(currentFrameIndex, 0));
+  }
+
+  function drawFrame(index){
+    index = Math.max(0, Math.min(frameSet.count - 1, index));
+    var img = findLoadedImage(index);
+    if (!img) return;
+    currentFrameIndex = index;
+
+    var cw = canvas.width, ch = canvas.height;
+    var iw = img.naturalWidth, ih = img.naturalHeight;
+    var scale = Math.max(cw / iw, ch / ih);
+    var dw = iw * scale, dh = ih * scale;
+    var dx = (cw - dw) / 2, dy = (ch - dh) / 2;
+    ctx.clearRect(0, 0, cw, ch);
+    ctx.drawImage(img, dx, dy, dw, dh);
+  }
+
+  function preloadFrames(onFirst, onAllDone){
+    var firstFired = false;
+    for (var i = 0; i < frameSet.count; i++){
+      var img = new Image();
+      images[i] = img;
+      img.addEventListener('load', function(){
+        loadedCount++;
+        if (!firstFired){ firstFired = true; onFirst(); }
+        if (loadedCount === frameSet.count){ onAllDone(); }
+      });
+      img.src = frameSet.folder + '/frame_' + pad3(i + 1) + '.jpg';
+    }
+  }
+
+  function setupScrub(){
+    var lines = [
+      { el: document.getElementById('hero-line-1'), start: 0.00, end: 0.25 },
+      { el: document.getElementById('hero-line-2'), start: 0.25, end: 0.50 },
+      { el: document.getElementById('hero-line-3'), start: 0.50, end: 0.75 },
+      { el: document.getElementById('hero-line-4'), start: 0.75, end: 1.00 }
+    ];
+    var hint = document.querySelector('.hero-scroll-hint');
+    var fadeMargin = 0.04;
+
+    // Single trigger driving the canvas frame + all text fades together, in one rAF-batched update.
+    ScrollTrigger.create({
+      trigger: heroWrap,
+      start: 'top top',
+      end: 'bottom bottom',
+      scrub: 0.35,
+      onUpdate: function(self){
+        var p = self.progress;
+        var frameIndex = Math.round(p * (frameSet.count - 1));
+        if (frameIndex !== currentFrameIndex){
+          drawFrame(frameIndex);
+        }
+
+        for (var i = 0; i < lines.length; i++){
+          var item = lines[i];
+          var opacity = 0;
+          if (p >= item.start && p <= item.end){
+            var span = item.end - item.start;
+            var localP = (p - item.start) / span;
+            var marginP = fadeMargin / span;
+            if (localP < marginP){
+              opacity = localP / marginP;
+            } else if (localP > 1 - marginP){
+              opacity = (1 - localP) / marginP;
+            } else {
+              opacity = 1;
+            }
+          }
+          item.el.style.opacity = Math.max(0, Math.min(1, opacity));
+        }
+
+        hint.style.opacity = Math.max(0, 1 - p * 8);
+      }
+    });
+  }
+
+  // ResizeObserver fires once as soon as the box's real layout size is known
+  // (unlike a single synchronous call at script time, which can race ahead
+  // of layout on some hosts) and again on every subsequent resize.
+  if (window.ResizeObserver){
+    new ResizeObserver(resizeCanvas).observe(canvas.parentElement);
+  } else {
+    window.addEventListener('resize', resizeCanvas);
+    resizeCanvas();
+  }
+
+  preloadFrames(
+    function onFirst(){
+      resizeCanvas();
+      var loaderEl = document.getElementById('hero-loader');
+      if (loaderEl) loaderEl.classList.add('is-hidden');
+    },
+    function onAllDone(){ /* all frames buffered, scrub already active */ }
+  );
+
+  setupScrub();
+
+  // Reveal-on-scroll for sections
+  var revealEls = document.querySelectorAll('.reveal');
+  var observer = new IntersectionObserver(function(entries){
+    entries.forEach(function(entry){
+      if (entry.isIntersecting){
+        entry.target.classList.add('is-visible');
+        observer.unobserve(entry.target);
+      }
+    });
+  }, { threshold: 0.15 });
+
+  revealEls.forEach(function(el){ observer.observe(el); });
+})();
+</script>
+
+</body>
+</html>
