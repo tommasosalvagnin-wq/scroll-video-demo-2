@@ -76,7 +76,7 @@
   .hero-gradient{
     position:absolute;
     inset:0;
-    background:linear-gradient(to top, rgba(0,0,0,0.6) 0%, rgba(0,0,0,0.15) 45%, rgba(0,0,0,0) 70%);
+    background:linear-gradient(to top, rgba(0,0,0,0.78) 0%, rgba(0,0,0,0.4) 35%, rgba(0,0,0,0.1) 60%, rgba(0,0,0,0) 85%);
     pointer-events:none;
   }
 
@@ -257,6 +257,7 @@
     bottom:clamp(60px, 10vh, 110px);
     opacity:0;
     color:#fff;
+    text-shadow:0 2px 16px rgba(0,0,0,0.45), 0 1px 3px rgba(0,0,0,0.6);
   }
 
   .hero-line.big{
@@ -392,15 +393,9 @@
 
     <div class="hero-nav">
       <div class="hero-logo">Il Tuo Brand</div>
-      <a href="#cta" class="btn-fancy">Scopri di più<span class="btn-fancy-icon">→</span></a>
     </div>
 
-    <div class="rating-badge">★ 4.9 · Anteprima</div>
-
     <h1 class="hero-line big" id="hero-line-1">Un titolo che cattura l'attenzione</h1>
-    <h2 class="hero-line mid" id="hero-line-2">Sottotitolo di supporto al messaggio</h2>
-    <h2 class="hero-line mid" id="hero-line-3">Un dettaglio in più da comunicare</h2>
-    <h2 class="hero-line mid" id="hero-line-4">Un invito chiaro all'azione</h2>
 
     <div class="hero-scroll-hint"><span>Scorri</span><span class="chevron"></span></div>
   </div>
@@ -531,10 +526,7 @@
 
   function setupScrub(){
     var lines = [
-      { el: document.getElementById('hero-line-1'), start: 0.00, end: 0.25 },
-      { el: document.getElementById('hero-line-2'), start: 0.25, end: 0.50 },
-      { el: document.getElementById('hero-line-3'), start: 0.50, end: 0.75 },
-      { el: document.getElementById('hero-line-4'), start: 0.75, end: 1.00 }
+      { el: document.getElementById('hero-line-1'), start: 0.00, end: 0.25 }
     ];
     var hint = document.querySelector('.hero-scroll-hint');
     var fadeMargin = 0.04;
